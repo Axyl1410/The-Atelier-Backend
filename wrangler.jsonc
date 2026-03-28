@@ -1,0 +1,9 @@
+{
+  "compatibility_date": "2025-10-08",
+  "main": "src/index.ts",
+  "name": "the-atelier-backend",
+  "upload_source_maps": true,
+  "observability": {
+    "enabled": true
+  }
+}
