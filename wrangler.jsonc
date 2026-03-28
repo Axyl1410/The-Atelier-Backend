@@ -5,5 +5,12 @@
   "upload_source_maps": true,
   "observability": {
     "enabled": true
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "openapi-db",
+      "database_id": "7b224c7d-83ea-4775-93cd-47e06f1beb3c"
+    }
+  ]
 }

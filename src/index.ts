@@ -1,6 +1,8 @@
 import { ApiException, fromHono } from "chanfana";
+import { drizzle } from "drizzle-orm/d1";
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
+import { usersTable } from "./db/schema";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
 
 // Start a Hono app
@@ -41,6 +43,10 @@ const openapi = fromHono(app, {
 
 // Register other endpoints
 openapi.post("/dummy/:slug", DummyEndpoint);
-
+openapi.get("/test", async (c) => {
+  const db = drizzle(c.env.DB);
+  const result = await db.select().from(usersTable).all();
+  return Response.json(result);
+});
 // Export the Hono app
 export default app;
