@@ -2,6 +2,7 @@
   "name": "the-atelier-backend",
   "description": "The Atelier backend API",
   "dependencies": {
+    "better-auth": "^1.5.6",
     "chanfana": "2.8.3",
     "dotenv": "^17.3.1",
     "drizzle-orm": "^0.45.2",
