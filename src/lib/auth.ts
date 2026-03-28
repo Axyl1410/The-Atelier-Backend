@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { bearer } from "better-auth/plugins";
+import { bearer, openAPI } from "better-auth/plugins";
 import {
   account,
   accountRelations,
@@ -47,5 +47,5 @@ export const auth = betterAuth({
     camelCase: true,
     schema,
   }),
-  plugins: [bearer()],
+  plugins: [bearer(), openAPI()],
 });

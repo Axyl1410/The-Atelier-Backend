@@ -2,9 +2,7 @@ import { ApiException, fromHono } from "chanfana";
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
-import { user } from "./db/schema";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
-import { db } from "./functions";
 import { auth, trustedBrowserOrigins } from "./lib/auth";
 
 // Start a Hono app
@@ -72,17 +70,14 @@ const openapi = fromHono(app, {
     info: {
       title: "The Atelier Backend API",
       version: "2.0.0",
-      description: "This is the documentation for the The Atelier Backend API.",
+      description:
+        "The Atelier Backend API. Authentication (sign-up / sign-in / sign-out) is documented under Better Auth: interactive UI at `/api/auth/reference`, OpenAPI JSON at `/api/auth/open-api/generate-schema`. See `docs/better-auth-openapi.md`.",
     },
   },
 });
 
 // Register other endpoints
 openapi.post("/dummy/:slug", DummyEndpoint);
-openapi.get("/test", async () => {
-  const database = db.getDatabase();
-  const result = await database.select().from(user).all();
-  return Response.json(result);
-});
+
 // Export the Hono app
 export default app;
