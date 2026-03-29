@@ -23,7 +23,7 @@ const schema = {
   accountRelations,
 };
 
-const baseURL = env.BETTER_AUTH_URL.replace(/\/$/, "");
+const baseURL = env.BETTER_AUTH_URL;
 
 /** Origins allowed for browser / WebView (CORS + Better Auth CSRF). Native apps often send no Origin — CORS allows that. */
 export const trustedBrowserOrigins = [
