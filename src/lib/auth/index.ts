@@ -1,5 +1,5 @@
-import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
+import { betterAuth } from "better-auth/minimal";
 import {
   admin,
   bearer,
@@ -10,6 +10,7 @@ import {
 import {
   account,
   accountRelations,
+  rateLimit,
   session,
   sessionRelations,
   user,
@@ -33,6 +34,7 @@ const schema = {
   userRelations,
   sessionRelations,
   accountRelations,
+  rateLimit,
 };
 
 const baseURL = env.BETTER_AUTH_URL;
@@ -69,6 +71,15 @@ export const auth = betterAuth({
   },
   emailVerification: {
     sendVerificationEmail,
+  },
+  rateLimit: {
+    storage: "database",
+    enabled: true,
+  },
+  advanced: {
+    ipAddress: {
+      ipAddressHeaders: ["cf-connecting-ip", "x-forwarded-for"], // Cloudflare specific header example
+    },
   },
   database: drizzleAdapter(db.getDatabase(), {
     provider: "sqlite",
