@@ -1,15 +1,22 @@
-import { createDb } from "@workspace/database";
+/** biome-ignore-all lint/performance/noNamespaceImport: <> */
+import { drizzle } from "drizzle-orm/d1";
+import * as schema from "../db/schema";
 import { env } from "../utils/cf-util";
 
 class DatabaseClient {
   private readonly d1: D1Database;
+  private readonly casing: "camelCase";
 
   constructor() {
     this.d1 = env.DB;
+    this.casing = "camelCase";
   }
 
   getDatabase(d1?: D1Database) {
-    return createDb(d1 ?? this.d1);
+    return drizzle(d1 ?? this.d1, {
+      schema,
+      casing: this.casing,
+    });
   }
 }
 
