@@ -12,6 +12,7 @@ import {
 } from "../db/schema";
 import { db } from "../functions";
 import { env } from "../utils/cf-util";
+import resend from "./resend";
 
 const schema = {
   user,
@@ -41,6 +42,17 @@ export const auth = betterAuth({
   trustedOrigins: trustedBrowserOrigins,
   emailAndPassword: {
     enabled: true,
+    requireEmailVerification: true,
+  },
+  emailVerification: {
+    sendVerificationEmail: async ({ user, url, token }) => {
+      await resend.emails.send({
+        from: "Axyl <contact@axyl.io.vn>",
+        to: user.email,
+        subject: "Verify your email address",
+        text: `Click the link to verify your email: ${url}?token=${token}`,
+      });
+    },
   },
   database: drizzleAdapter(db.getDatabase(), {
     provider: "sqlite",
