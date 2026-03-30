@@ -28,6 +28,21 @@ app.use(
 );
 
 app.use("*", async (c, next) => {
+  // Avoid doing session lookups on every request:
+  // - Skip preflight requests
+  // - Skip Better Auth's own routes
+  // - Only evaluate sessions for API routes
+  if (c.req.method === "OPTIONS") {
+    await next();
+    return;
+  }
+
+  const path = c.req.path;
+  if (!path.startsWith("/api/") || path.startsWith("/api/auth/")) {
+    await next();
+    return;
+  }
+
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) {
     c.set("user", null);
