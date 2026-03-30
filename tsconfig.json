@@ -12,5 +12,5 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": ["src", "emails"]
+  "include": ["src", "src/emails"]
 }

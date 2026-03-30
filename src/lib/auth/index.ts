@@ -15,13 +15,15 @@ import {
   user,
   userRelations,
   verification,
-} from "../db/schema";
-import { db } from "../functions";
-import { env } from "../utils/cf-util";
+} from "../../db/schema/auth";
+import { db } from "../../functions";
+import { env } from "../../utils/cf-util";
+import {
+  sendChangeEmailConfirmation,
+  sendResetPassword,
+  sendVerificationEmail,
+} from "../email/transactional";
 import { hashPassword, verifyPassword } from "./password-hash";
-import { sendChangeEmailConfirmation } from "./send-change-email-confirmation";
-import { sendResetPassword } from "./send-reset-password";
-import { sendVerificationEmail } from "./send-verification-email";
 
 const schema = {
   user,

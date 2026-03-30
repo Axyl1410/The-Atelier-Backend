@@ -1,6 +1,6 @@
-/** biome-ignore-all lint/performance/noNamespaceImport: <explanation> */
+/** biome-ignore-all lint/performance/noNamespaceImport: drizzle schema object for relational queries */
 import { drizzle } from "drizzle-orm/d1";
-import * as schema from "../db/schema";
+import * as schema from "../db/schema/auth";
 import { env } from "../utils/cf-util";
 
 class DatabaseClient {
