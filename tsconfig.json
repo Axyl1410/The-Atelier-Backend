@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "jsx": "react",
     "target": "esnext",
     "lib": ["esnext"],
     "module": "esnext",
@@ -11,5 +12,5 @@
     "skipLibCheck": true,
     "strict": true
   },
-  "include": ["src"]
+  "include": ["src", "emails"]
 }

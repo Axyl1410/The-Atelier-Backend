@@ -12,10 +12,11 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.7",
-    "@cloudflare/vitest-pool-workers": "0.10.11",
+    "@react-email/preview-server": "5.2.10",
     "@types/node": "24.10.1",
     "drizzle-kit": "^0.31.10",
     "lefthook": "^2.1.4",
+    "react-email": "5.2.10",
     "typescript": "5.9.3",
     "ultracite": "7.3.2",
     "vitest": "3.2.4",
@@ -34,6 +35,7 @@
     "prepare": "lefthook install",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
+    "db:studio": "drizzle-kit studio",
+    "email:dev": "email dev"
   }
 }
