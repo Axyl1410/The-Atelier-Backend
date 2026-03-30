@@ -1,27 +1,9 @@
+import { betterAuthSchema } from "@workspace/database";
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { bearer, openAPI } from "better-auth/plugins";
-import {
-  account,
-  accountRelations,
-  session,
-  sessionRelations,
-  user,
-  userRelations,
-  verification,
-} from "../db/schema";
 import { db } from "../functions";
 import { env } from "../utils/cf-util";
-
-const schema = {
-  user,
-  session,
-  account,
-  verification,
-  userRelations,
-  sessionRelations,
-  accountRelations,
-};
 
 const baseURL = env.BETTER_AUTH_URL;
 
@@ -45,7 +27,7 @@ export const auth = betterAuth({
   database: drizzleAdapter(db.getDatabase(), {
     provider: "sqlite",
     camelCase: true,
-    schema,
+    schema: betterAuthSchema,
   }),
   plugins: [bearer(), openAPI()],
 });
