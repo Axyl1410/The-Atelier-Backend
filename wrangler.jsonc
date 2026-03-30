@@ -1,4 +1,5 @@
 {
+  "$schema": "node_modules/wrangler/config-schema.json",
   "compatibility_date": "2025-10-08",
   "compatibility_flags": ["nodejs_compat"],
   "main": "src/index.ts",
@@ -12,6 +13,12 @@
       "binding": "DB",
       "database_name": "openapi-db",
       "database_id": "7b224c7d-83ea-4775-93cd-47e06f1beb3c"
+    }
+  ],
+  "kv_namespaces": [
+    {
+      "binding": "KV",
+      "id": "5d28cc055f1f40b6a406584820f145e9"
     }
   ]
 }
