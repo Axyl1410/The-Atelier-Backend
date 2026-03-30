@@ -1,6 +1,12 @@
 import { betterAuth } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
-import { bearer, openAPI } from "better-auth/plugins";
+import {
+  admin,
+  bearer,
+  haveIBeenPwned,
+  openAPI,
+  username,
+} from "better-auth/plugins";
 import {
   account,
   accountRelations,
@@ -12,6 +18,8 @@ import {
 } from "../db/schema";
 import { db } from "../functions";
 import { env } from "../utils/cf-util";
+import { sendChangeEmailConfirmation } from "./send-change-email-confirmation";
+import { sendResetPassword } from "./send-reset-password";
 import { sendVerificationEmail } from "./send-verification-email";
 
 const schema = {
@@ -43,6 +51,14 @@ export const auth = betterAuth({
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
+    sendResetPassword,
+    revokeSessionsOnPasswordReset: true,
+  },
+  user: {
+    changeEmail: {
+      enabled: true,
+      sendChangeEmailConfirmation,
+    },
   },
   emailVerification: {
     sendVerificationEmail,
@@ -52,5 +68,5 @@ export const auth = betterAuth({
     camelCase: true,
     schema,
   }),
-  plugins: [bearer(), openAPI()],
+  plugins: [bearer(), openAPI(), username(), admin(), haveIBeenPwned()],
 });

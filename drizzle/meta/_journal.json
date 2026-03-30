@@ -15,6 +15,13 @@
       "when": 1774718556217,
       "tag": "0001_lively_bedlam",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1774881729028,
+      "tag": "0002_peaceful_whirlwind",
+      "breakpoints": true
     }
   ]
 }
