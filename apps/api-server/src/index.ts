@@ -27,13 +27,18 @@ app.use(
   })
 );
 
-app.use("*", async (c, next) => {
+app.use("/api/me/*", async (c, next) => {
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) {
     c.set("user", null);
     c.set("session", null);
-    await next();
-    return;
+    return c.json(
+      {
+        success: false,
+        errors: [{ code: 4010, message: "Unauthorized" }],
+      },
+      401
+    );
   }
   c.set("user", session.user);
   c.set("session", session.session);

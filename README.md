@@ -1,72 +1,159 @@
-# OpenAPI Template
+# Turborepo starter
 
-[![Deploy to Cloudflare](https://deploy.workers.cloudflare.com/button)](https://deploy.workers.cloudflare.com/?url=https://github.com/cloudflare/templates/tree/main/chanfana-openapi-template)
+This Turborepo starter is maintained by the Turborepo core team.
 
-![OpenAPI Template Preview](https://imagedelivery.net/wSMYJvS3Xw-n339CbDyDIA/91076b39-1f5b-46f6-7f14-536a6f183000/public)
+## Using this example
 
-<!-- dash-content-start -->
+Run the following command:
 
-This is a Cloudflare Worker with OpenAPI 3.1 Auto Generation and Validation using [chanfana](https://github.com/cloudflare/chanfana) and [Hono](https://github.com/honojs/hono).
-
-This is an example project made to be used as a quick start into building OpenAPI compliant Workers that generates the
-`openapi.json` schema automatically from code and validates the incoming request to the defined parameters or request body.
-
-This template includes various endpoints, a D1 database, and integration tests using [Vitest](https://vitest.dev/) as examples. In endpoints, you will find [chanfana D1 AutoEndpoints](https://chanfana.com/endpoints/auto/d1) and a [normal endpoint](https://chanfana.com/endpoints/defining-endpoints) to serve as examples for your projects.
-
-Besides being able to see the OpenAPI schema (openapi.json) in the browser, you can also extract the schema locally no hassle by running this command `npm run schema`.
-
-<!-- dash-content-end -->
-
-> [!IMPORTANT]
-> When using C3 to create this project, select "no" when it asks if you want to deploy. You need to follow this project's [setup steps](https://github.com/cloudflare/templates/tree/main/openapi-template#setup-steps) before deploying.
-
-## Getting Started
-
-Outside of this repo, you can start a new project with this template using [C3](https://developers.cloudflare.com/pages/get-started/c3/) (the `create-cloudflare` CLI):
-
-```bash
-npm create cloudflare@latest -- --template=cloudflare/templates/openapi-template
+```sh
+npx create-turbo@latest
 ```
 
-A live public deployment of this template is available at [https://openapi-template.templates.workers.dev](https://openapi-template.templates.workers.dev)
+## What's inside?
 
-## Setup Steps
+This Turborepo includes the following packages/apps:
 
-1. Install the project dependencies with a package manager of your choice:
-   ```bash
-   npm install
-   ```
-2. Create a [D1 database](https://developers.cloudflare.com/d1/get-started/) with the name "openapi-template-db":
-   ```bash
-   npx wrangler d1 create openapi-template-db
-   ```
-   ...and update the `database_id` field in `wrangler.json` with the new database ID.
-3. Run the following db migration to initialize the database (notice the `migrations` directory in this project):
-   ```bash
-   npx wrangler d1 migrations apply DB --remote
-   ```
-4. Deploy the project!
-   ```bash
-   npx wrangler deploy
-   ```
-5. Monitor your worker
-   ```bash
-   npx wrangler tail
-   ```
+### Apps and Packages
 
-## Testing
+- `docs`: a [Next.js](https://nextjs.org/) app
+- `web`: another [Next.js](https://nextjs.org/) app
+- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
+- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
+- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
 
-This template includes integration tests using [Vitest](https://vitest.dev/). To run the tests locally:
+Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
 
-```bash
-npm run test
+### Utilities
+
+This Turborepo has some additional tools already setup for you:
+
+- [TypeScript](https://www.typescriptlang.org/) for static type checking
+- [ESLint](https://eslint.org/) for code linting
+- [Prettier](https://prettier.io) for code formatting
+
+### Build
+
+To build all apps and packages, run the following command:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+
+```sh
+cd my-turborepo
+turbo build
 ```
 
-Test files are located in the `tests/` directory, with examples demonstrating how to test your endpoints and database interactions.
+Without global `turbo`, use your package manager:
 
-## Project structure
+```sh
+cd my-turborepo
+npx turbo build
+yarn dlx turbo build
+pnpm exec turbo build
+```
 
-1. Your main router is defined in `src/index.ts`.
-2. Each endpoint has its own file in `src/endpoints/`.
-3. Integration tests are located in the `tests/` directory.
-4. For more information read the [chanfana documentation](https://chanfana.com/), [Hono documentation](https://hono.dev/docs), and [Vitest documentation](https://vitest.dev/guide/).
+You can build a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+
+```sh
+turbo build --filter=docs
+```
+
+Without global `turbo`:
+
+```sh
+npx turbo build --filter=docs
+yarn exec turbo build --filter=docs
+pnpm exec turbo build --filter=docs
+```
+
+### Develop
+
+To develop all apps and packages, run the following command:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+
+```sh
+cd my-turborepo
+turbo dev
+```
+
+Without global `turbo`, use your package manager:
+
+```sh
+cd my-turborepo
+npx turbo dev
+yarn exec turbo dev
+pnpm exec turbo dev
+```
+
+You can develop a specific package by using a [filter](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters):
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+
+```sh
+turbo dev --filter=web
+```
+
+Without global `turbo`:
+
+```sh
+npx turbo dev --filter=web
+yarn exec turbo dev --filter=web
+pnpm exec turbo dev --filter=web
+```
+
+### Remote Caching
+
+> [!TIP]
+> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+
+Turborepo can use a technique known as [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+
+By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed (recommended):
+
+```sh
+cd my-turborepo
+turbo login
+```
+
+Without global `turbo`, use your package manager:
+
+```sh
+cd my-turborepo
+npx turbo login
+yarn exec turbo login
+pnpm exec turbo login
+```
+
+This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
+
+Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
+
+With [global `turbo`](https://turborepo.dev/docs/getting-started/installation#global-installation) installed:
+
+```sh
+turbo link
+```
+
+Without global `turbo`:
+
+```sh
+npx turbo link
+yarn exec turbo link
+pnpm exec turbo link
+```
+
+## Useful Links
+
+Learn more about the power of Turborepo:
+
+- [Tasks](https://turborepo.dev/docs/crafting-your-repository/running-tasks)
+- [Caching](https://turborepo.dev/docs/crafting-your-repository/caching)
+- [Remote Caching](https://turborepo.dev/docs/core-concepts/remote-caching)
+- [Filtering](https://turborepo.dev/docs/crafting-your-repository/running-tasks#using-filters)
+- [Configuration Options](https://turborepo.dev/docs/reference/configuration)
+- [CLI Usage](https://turborepo.dev/docs/reference/command-line-reference)

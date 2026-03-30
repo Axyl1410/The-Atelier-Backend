@@ -1,38 +1,32 @@
 {
-  "name": "the-atelier-backend",
-  "description": "The Atelier backend API",
-  "dependencies": {
-    "better-auth": "^1.5.6",
-    "chanfana": "2.8.3",
-    "dotenv": "^17.3.1",
-    "drizzle-orm": "^0.45.2",
-    "hono": "4.11.1",
-    "zod": "3.25.67"
+  "name": "TheAtelierTurbo",
+  "private": true,
+  "scripts": {
+    "build": "turbo run build",
+    "dev": "turbo run dev",
+    "dev:remote": "turbo run dev:remote",
+    "lint": "turbo run lint",
+    "format": "prettier --write \"**/*.{ts,tsx,md}\"",
+    "check-types": "turbo run check-types",
+    "api-server:deploy": "turbo run deploy --filter=api-server",
+    "check": "ultracite check",
+    "fix": "ultracite fix",
+    "prepare": "lefthook install"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.7",
-    "@cloudflare/vitest-pool-workers": "0.10.11",
-    "@types/node": "24.10.1",
-    "drizzle-kit": "^0.31.10",
     "lefthook": "^2.1.4",
-    "typescript": "5.9.3",
-    "ultracite": "7.3.2",
-    "vitest": "3.2.4",
-    "wrangler": "^4.78.0"
+    "prettier": "^3.7.4",
+    "turbo": "^2.8.21",
+    "typescript": "5.9.2",
+    "ultracite": "7.3.2"
   },
-  "private": true,
-  "scripts": {
-    "cf-typegen": "wrangler types",
-    "deploy": "wrangler deploy",
-    "dev": "wrangler dev",
-    "dev:remote": "wrangler dev --remote",
-    "schema": "npx chanfana",
-    "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts",
-    "check": "ultracite check",
-    "fix": "ultracite fix",
-    "prepare": "lefthook install",
-    "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
-    "db:studio": "drizzle-kit studio"
-  }
+  "engines": {
+    "node": ">=18"
+  },
+  "packageManager": "bun@1.3.5",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ]
 }
