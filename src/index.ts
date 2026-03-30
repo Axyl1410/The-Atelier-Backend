@@ -30,15 +30,17 @@ app.use(
 app.use("*", async (c, next) => {
   // Avoid doing session lookups on every request:
   // - Skip preflight requests
-  // - Skip Better Auth's own routes
-  // - Only evaluate sessions for API routes
+  // - Only evaluate sessions for protected routes (and /api/session)
   if (c.req.method === "OPTIONS") {
     await next();
     return;
   }
 
   const path = c.req.path;
-  if (!path.startsWith("/api/") || path.startsWith("/api/auth/")) {
+  const isProtectedRoute =
+    path === "/api/session" || path.startsWith("/api/protected/");
+
+  if (!isProtectedRoute) {
     await next();
     return;
   }
@@ -50,9 +52,24 @@ app.use("*", async (c, next) => {
     await next();
     return;
   }
+
   c.set("user", session.user);
   c.set("session", session.session);
   await next();
+});
+
+app.get("/api/session", (c) => {
+  const session = c.get("session");
+  const user = c.get("user");
+
+  if (!user) {
+    return c.body(null, 401);
+  }
+
+  return c.json({
+    session,
+    user,
+  });
 });
 
 app.onError((err, c) => {
