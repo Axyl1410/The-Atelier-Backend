@@ -18,6 +18,7 @@ import {
 } from "../db/schema";
 import { db } from "../functions";
 import { env } from "../utils/cf-util";
+import { hashPassword, verifyPassword } from "./password-hash";
 import { sendChangeEmailConfirmation } from "./send-change-email-confirmation";
 import { sendResetPassword } from "./send-reset-password";
 import { sendVerificationEmail } from "./send-verification-email";
@@ -53,6 +54,10 @@ export const auth = betterAuth({
     requireEmailVerification: true,
     sendResetPassword,
     revokeSessionsOnPasswordReset: true,
+    password: {
+      hash: hashPassword,
+      verify: verifyPassword,
+    },
   },
   user: {
     changeEmail: {
