@@ -1,4 +1,4 @@
-/** biome-ignore-all lint/performance/noNamespaceImport: <> */
+/** biome-ignore-all lint/performance/noNamespaceImport: <explanation> */
 import { drizzle } from "drizzle-orm/d1";
 import * as schema from "../db/schema";
 import { env } from "../utils/cf-util";
