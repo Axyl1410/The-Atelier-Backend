@@ -1,7 +1,7 @@
 import ChangeEmailEmail from "../../emails/change-email-email";
 import ChangePasswordEmail from "../../emails/change-password-email";
 import VerifyAccountEmail from "../../emails/verify-account-email";
-import resend from "./resend";
+import { resend } from "./resend";
 
 const AUTH_MAIL_FROM = "Axyl <contact@axyl.io.vn>";
 

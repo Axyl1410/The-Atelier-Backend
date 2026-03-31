@@ -15,7 +15,6 @@ import {
   sessionRelations,
   user,
   userRelations,
-  verification,
 } from "../../db/schema/auth";
 import { db } from "../../functions";
 import { env } from "../../utils/cf-util";
@@ -31,7 +30,6 @@ const schema = {
   user,
   session,
   account,
-  verification,
   userRelations,
   sessionRelations,
   accountRelations,
