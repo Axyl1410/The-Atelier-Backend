@@ -24,6 +24,7 @@ import {
   sendResetPassword,
   sendVerificationEmail,
 } from "../email/transactional";
+import { redisSecondaryStorage } from "./adapters/redis-secondary-storage";
 import { hashPassword, verifyPassword } from "./password-hash";
 
 const schema = {
@@ -50,8 +51,13 @@ export const trustedBrowserOrigins = [
 
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
-  baseURL,
   trustedOrigins: trustedBrowserOrigins,
+
+  baseURL: {
+    allowedHosts: ["*.axyl.io.vn", "localhost:*"],
+    fallback: baseURL,
+  },
+
   emailAndPassword: {
     enabled: true,
     requireEmailVerification: true,
@@ -62,85 +68,30 @@ export const auth = betterAuth({
       verify: verifyPassword,
     },
   },
+
   user: {
     changeEmail: {
       enabled: true,
       sendChangeEmailConfirmation,
     },
   },
+
   emailVerification: {
     sendVerificationEmail,
   },
+
   session: {
     storeSessionInDatabase: true,
-    // cookieCache disabled — bug #4203 (re-enable when upstream fixes it)
-    updateAge: 60 * 15,
   },
+
   rateLimit: {
     enabled: true,
     window: 60,
     max: 30,
-    customStorage: {
-      get: async (key) => {
-        try {
-          const data = await env.KV.get(key);
-          return data ? JSON.parse(data) : undefined;
-        } catch {
-          return undefined;
-        }
-      },
-      set: async (key, value) => {
-        try {
-          await env.KV.put(key, JSON.stringify(value), {
-            expirationTtl: 60,
-          });
-        } catch (e) {
-          console.warn("[auth] Rate limit KV set failed", {
-            key,
-            error: String(e),
-          });
-        }
-      },
-      delete: async (key: string) => {
-        try {
-          await env.KV.delete(key);
-        } catch (e) {
-          console.warn("[auth] Rate limit KV delete failed", {
-            key,
-            error: String(e),
-          });
-        }
-      },
-    },
+    storage: "secondary-storage",
   },
-  secondaryStorage: {
-    get: async (key) => {
-      try {
-        return await env.KV.get(key);
-      } catch {
-        return null;
-      }
-    },
-    set: async (key, value, ttl) => {
-      try {
-        const effectiveTtl = ttl ? Math.max(ttl, 60) : undefined;
-        await env.KV.put(
-          key,
-          value,
-          effectiveTtl ? { expirationTtl: effectiveTtl } : undefined
-        );
-      } catch (e) {
-        console.warn("[auth] KV set failed", { key, error: String(e) });
-      }
-    },
-    delete: async (key) => {
-      try {
-        await env.KV.delete(key);
-      } catch (e) {
-        console.warn("[auth] KV delete failed", { key, error: String(e) });
-      }
-    },
-  },
+
+  secondaryStorage: redisSecondaryStorage,
 
   advanced: {
     ipAddress: {
@@ -159,10 +110,12 @@ export const auth = betterAuth({
         }
       : {}),
   },
+
   database: drizzleAdapter(db.getDatabase(), {
     provider: "sqlite",
     camelCase: true,
     schema,
   }),
+
   plugins: [bearer(), openAPI(), username(), admin(), haveIBeenPwned()],
 });
