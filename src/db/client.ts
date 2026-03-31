@@ -1,7 +1,7 @@
 /** biome-ignore-all lint/performance/noNamespaceImport: drizzle schema object for relational queries */
 import { drizzle } from "drizzle-orm/d1";
-import * as schema from "../db/schema/auth";
-import { env } from "../utils/cf-util";
+import { env } from "@/utils/cf-util";
+import * as schema from "./schema/auth";
 
 class DatabaseClient {
   private readonly d1: D1Database;

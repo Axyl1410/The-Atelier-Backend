@@ -3,6 +3,7 @@ import { Hono } from "hono";
 import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
+import { ResendVerificationEmailEndpoint } from "./endpoints/resend-verification-email";
 import { auth, trustedBrowserOrigins } from "./lib/auth";
 
 // Start a Hono app
@@ -110,6 +111,7 @@ const openapi = fromHono(app, {
 
 // Register other endpoints
 openapi.post("/dummy/:slug", DummyEndpoint);
+openapi.post("/api/resend-verification-email", ResendVerificationEmailEndpoint);
 
 // Export the Hono app
 export default app;

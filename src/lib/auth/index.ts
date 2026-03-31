@@ -8,6 +8,7 @@ import {
   testUtils,
   username,
 } from "better-auth/plugins";
+import { db } from "@/db/client";
 import {
   account,
   accountRelations,
@@ -16,7 +17,6 @@ import {
   user,
   userRelations,
 } from "@/db/schema/auth";
-import { db } from "@/functions";
 import {
   sendChangeEmailConfirmation,
   sendResetPassword,
