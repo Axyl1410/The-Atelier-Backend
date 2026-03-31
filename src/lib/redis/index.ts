@@ -1,5 +1,5 @@
 import { Redis } from "@upstash/redis";
-import { env } from "../../utils/cf-util";
+import { env } from "@/utils/cf-util";
 
 export const redis = new Redis({
   url: env.UPSTASH_REDIS_REST_URL,

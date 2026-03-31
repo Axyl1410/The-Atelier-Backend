@@ -1,4 +1,3 @@
-import { waitUntil } from "cloudflare:workers";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { betterAuth } from "better-auth/minimal";
 import {
@@ -6,6 +5,7 @@ import {
   bearer,
   haveIBeenPwned,
   openAPI,
+  testUtils,
   username,
 } from "better-auth/plugins";
 import {
@@ -15,16 +15,25 @@ import {
   sessionRelations,
   user,
   userRelations,
-} from "../../db/schema/auth";
-import { db } from "../../functions";
-import { env } from "../../utils/cf-util";
+} from "@/db/schema/auth";
+import { db } from "@/functions";
 import {
   sendChangeEmailConfirmation,
   sendResetPassword,
   sendVerificationEmail,
-} from "../email/transactional";
+} from "@/lib/email/transactional";
+import { env } from "@/utils/cf-util";
 import { redisSecondaryStorage } from "./adapters/redis-secondary-storage";
 import { hashPassword, verifyPassword } from "./password-hash";
+
+const waitUntil = await (async () => {
+  try {
+    const workers = await import("cloudflare:workers");
+    return workers.waitUntil;
+  } catch {
+    return undefined;
+  }
+})();
 
 const schema = {
   user,
@@ -48,6 +57,7 @@ export const trustedBrowserOrigins = [
 ];
 
 export const auth = betterAuth({
+  experimental: { joins: true },
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: trustedBrowserOrigins,
   baseURL,
@@ -111,5 +121,12 @@ export const auth = betterAuth({
     schema,
   }),
 
-  plugins: [bearer(), openAPI(), username(), admin(), haveIBeenPwned()],
+  plugins: [
+    bearer(),
+    openAPI(),
+    username(),
+    admin(),
+    haveIBeenPwned(),
+    testUtils(),
+  ],
 });

@@ -44,6 +44,7 @@ export const redisSecondaryStorage: SecondaryStorage = {
       }
     } catch (error) {
       console.error("Redis set error:", error);
+      throw error;
     }
   },
 
@@ -52,6 +53,7 @@ export const redisSecondaryStorage: SecondaryStorage = {
       await redis.del(key);
     } catch (error) {
       console.error("Redis delete error:", error);
+      throw error;
     }
   },
 };
