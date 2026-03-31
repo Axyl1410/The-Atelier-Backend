@@ -52,11 +52,7 @@ export const trustedBrowserOrigins = [
 export const auth = betterAuth({
   secret: env.BETTER_AUTH_SECRET,
   trustedOrigins: trustedBrowserOrigins,
-
-  baseURL: {
-    allowedHosts: ["*.axyl.io.vn", "localhost:*"],
-    fallback: baseURL,
-  },
+  baseURL,
 
   emailAndPassword: {
     enabled: true,
