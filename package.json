@@ -14,6 +14,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.7",
+    "@cloudflare/vitest-pool-workers": "^0.14.0",
     "@react-email/preview-server": "5.2.10",
     "@types/node": "24.10.1",
     "drizzle-kit": "^0.31.10",
@@ -21,7 +22,7 @@
     "react-email": "5.2.10",
     "typescript": "5.9.3",
     "ultracite": "7.3.2",
-    "vitest": "3.2.4",
+    "vitest": "^4.1.0",
     "wrangler": "^4.78.0"
   },
   "private": true,
@@ -30,7 +31,7 @@
     "deploy": "wrangler deploy",
     "dev": "wrangler dev --remote",
     "schema": "npx chanfana",
-    "test": "npx vitest run --config tests/vitest.config.mts",
+    "test": "wrangler deploy --dry-run && npx vitest run --config tests/vitest.config.mts",
     "check": "ultracite check",
     "fix": "ultracite fix",
     "prepare": "lefthook install",

@@ -45,6 +45,7 @@ export default function ChangePasswordEmail({
             <Button href={resetUrl} style={button}>
               Reset password
             </Button>
+            <Text style={text}>This link will expire in 1 hour.</Text>
             <Text style={text}>
               If you did not request this, you can safely ignore this email.
             </Text>

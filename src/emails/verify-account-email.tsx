@@ -43,6 +43,7 @@ export default function VerifyAccountEmail({
             <Button href={verifyUrl} style={button}>
               Verify account
             </Button>
+            <Text style={text}>This link will expire in 1 hour.</Text>
             <Text style={text}>
               If you did not create this account, you can safely ignore this
               email.

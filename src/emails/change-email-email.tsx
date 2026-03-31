@@ -48,6 +48,7 @@ export default function ChangeEmailEmail({
             <Button href={confirmUrl} style={button}>
               Confirm email change
             </Button>
+            <Text style={text}>This link will expire in 1 hour.</Text>
             <Text style={text}>
               If you did not request this change, ignore this email and secure
               your account.

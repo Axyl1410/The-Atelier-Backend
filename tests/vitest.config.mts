@@ -1,5 +1,6 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
 import { defineConfig } from "vitest/config";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -12,4 +13,14 @@ export default defineConfig({
       "@tests": path.resolve(__dirname),
     },
   },
+  plugins: [
+    cloudflareTest({
+      wrangler: {
+        configPath: path.resolve(__dirname, "../wrangler.jsonc"),
+      },
+      miniflare: {
+        compatibilityFlags: ["nodejs_compat"],
+      },
+    }),
+  ],
 });
