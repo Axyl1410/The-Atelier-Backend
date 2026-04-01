@@ -1,14 +1,5 @@
 import type { Context, Next } from "hono";
-import { checkRateLimit } from "@/lib/rate-limit";
-
-function getClientIp(headers: Headers): string {
-  return (
-    headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    headers.get("cf-connecting-ip") ??
-    headers.get("x-real-ip") ??
-    "unknown"
-  );
-}
+import { checkResendVerificationIpRateLimit } from "@/lib/rate-limit/resend-verification";
 
 export async function resendVerificationRateLimit(c: Context, next: Next) {
   if (c.req.method === "OPTIONS") {
@@ -16,8 +7,8 @@ export async function resendVerificationRateLimit(c: Context, next: Next) {
     return;
   }
 
-  const identifier = `resend-verification:${getClientIp(c.req.raw.headers)}`;
-  const { success, limit, remaining, reset } = await checkRateLimit(identifier);
+  const { success, limit, remaining, reset } =
+    await checkResendVerificationIpRateLimit(c.req.raw.headers);
 
   if (!success) {
     return c.json(

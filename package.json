@@ -24,7 +24,7 @@
     "typescript": "5.9.3",
     "ultracite": "7.3.2",
     "vitest": "^4.1.0",
-    "wrangler": "^4.78.0"
+    "wrangler": "^4.79.0"
   },
   "private": true,
   "scripts": {

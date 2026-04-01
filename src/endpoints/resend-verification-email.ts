@@ -5,14 +5,14 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { user as userTable } from "@/db/schema/auth";
 import { sendVerificationEmail } from "@/lib/email/transactional";
-import { redis } from "@/lib/redis";
+import {
+  releaseResendVerificationEmailCooldown,
+  tryAcquireResendVerificationEmailCooldown,
+} from "@/lib/rate-limit/resend-verification";
 import type { AppContext } from "@/types";
 import { env } from "@/utils/cf-util";
 
 const TRAILING_SLASHES_REGEX = /\/+$/;
-const RESEND_VERIFICATION_EMAIL_TTL_SECONDS = 60 * 60;
-const RESEND_VERIFICATION_EMAIL_LOCK_PREFIX =
-  "rate-limit:resend-verification-email";
 
 export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
   schema = {
@@ -71,13 +71,8 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
         return;
       }
 
-      const resendLockKey = `${RESEND_VERIFICATION_EMAIL_LOCK_PREFIX}:${email}`;
-      const lockAcquireResult = await redis.set(resendLockKey, "1", {
-        nx: true,
-        ex: RESEND_VERIFICATION_EMAIL_TTL_SECONDS,
-      });
-
-      if (lockAcquireResult !== "OK") {
+      const acquired = await tryAcquireResendVerificationEmailCooldown(email);
+      if (!acquired) {
         return;
       }
 
@@ -100,7 +95,7 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
           url: verificationURL,
         });
       } catch (error) {
-        await redis.del(resendLockKey);
+        await releaseResendVerificationEmailCooldown(email);
         throw error;
       }
     })();
