@@ -16,7 +16,6 @@ function getRatelimit(limit: number, window: Duration): Ratelimit {
       redis,
       limiter: Ratelimit.slidingWindow(limit, window),
       prefix: isDefault ? "@upstash/ratelimit" : `@upstash/ratelimit:${key}`,
-      analytics: true,
       // Same Map reused for this config across requests in a warm isolate (Cloudflare Worker).
       ephemeralCache: new Map<string, number>(),
     });
