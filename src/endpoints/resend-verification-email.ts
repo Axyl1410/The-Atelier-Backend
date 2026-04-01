@@ -5,10 +5,14 @@ import { z } from "zod";
 import { db } from "@/db/client";
 import { user as userTable } from "@/db/schema/auth";
 import { sendVerificationEmail } from "@/lib/email/transactional";
+import { redis } from "@/lib/redis";
 import type { AppContext } from "@/types";
 import { env } from "@/utils/cf-util";
 
 const TRAILING_SLASHES_REGEX = /\/+$/;
+const RESEND_VERIFICATION_EMAIL_TTL_SECONDS = 24 * 60 * 60;
+const RESEND_VERIFICATION_EMAIL_LOCK_PREFIX =
+  "rate-limit:resend-verification-email";
 
 export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
   schema = {
@@ -67,23 +71,38 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
         return;
       }
 
-      const token = await createEmailVerificationToken(
-        betterAuthSecret,
-        existingUser.email
-      );
-      const callbackURL = body.callbackURL
-        ? encodeURIComponent(body.callbackURL)
-        : encodeURIComponent("/");
-      const authBaseURL = betterAuthURL.replace(TRAILING_SLASHES_REGEX, "");
-      const verificationURL = `${authBaseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
-
-      await sendVerificationEmail({
-        user: {
-          email: existingUser.email,
-          name: existingUser.name,
-        },
-        url: verificationURL,
+      const resendLockKey = `${RESEND_VERIFICATION_EMAIL_LOCK_PREFIX}:${email}`;
+      const lockAcquireResult = await redis.set(resendLockKey, "1", {
+        nx: true,
+        ex: RESEND_VERIFICATION_EMAIL_TTL_SECONDS,
       });
+
+      if (lockAcquireResult !== "OK") {
+        return;
+      }
+
+      try {
+        const token = await createEmailVerificationToken(
+          betterAuthSecret,
+          existingUser.email
+        );
+        const callbackURL = body.callbackURL
+          ? encodeURIComponent(body.callbackURL)
+          : encodeURIComponent("/");
+        const authBaseURL = betterAuthURL.replace(TRAILING_SLASHES_REGEX, "");
+        const verificationURL = `${authBaseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
+
+        await sendVerificationEmail({
+          user: {
+            email: existingUser.email,
+            name: existingUser.name,
+          },
+          url: verificationURL,
+        });
+      } catch (error) {
+        await redis.del(resendLockKey);
+        throw error;
+      }
     })();
 
     if (c.executionCtx?.waitUntil) {
