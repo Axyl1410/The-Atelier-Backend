@@ -1,10 +1,12 @@
 import { ApiException, fromHono } from "chanfana";
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
 import { ResendVerificationEmailEndpoint } from "./endpoints/resend-verification-email";
-import { auth, trustedBrowserOrigins } from "./lib/auth";
+import { auth } from "./lib/auth";
+import { authCorsMiddleware } from "./middleware/auth-cors";
+import { resendVerificationRateLimit } from "./middleware/resend-verification-rate-limit";
+import { sessionContextMiddleware } from "./middleware/session-context";
 
 // Start a Hono app
 const app = new Hono<{
@@ -15,49 +17,10 @@ const app = new Hono<{
   };
 }>();
 
-app.use(
-  "/api/auth/*",
-  cors({
-    origin: (origin) =>
-      origin && trustedBrowserOrigins.includes(origin) ? origin : null,
-    allowHeaders: ["Content-Type", "Authorization"],
-    allowMethods: ["POST", "GET", "OPTIONS", "DELETE", "PATCH", "PUT"],
-    exposeHeaders: ["Set-Auth-Token"],
-    maxAge: 600,
-    credentials: true,
-  })
-);
+app.use("/api/auth/*", authCorsMiddleware);
 
-app.use("*", async (c, next) => {
-  // Avoid doing session lookups on every request:
-  // - Skip preflight requests
-  // - Only evaluate sessions for protected routes (and /api/session)
-  if (c.req.method === "OPTIONS") {
-    await next();
-    return;
-  }
-
-  const path = c.req.path;
-  const isProtectedRoute =
-    path === "/api/session" || path.startsWith("/api/protected/");
-
-  if (!isProtectedRoute) {
-    await next();
-    return;
-  }
-
-  const session = await auth.api.getSession({ headers: c.req.raw.headers });
-  if (!session) {
-    c.set("user", null);
-    c.set("session", null);
-    await next();
-    return;
-  }
-
-  c.set("user", session.user);
-  c.set("session", session.session);
-  await next();
-});
+app.use("/api/resend-verification-email", resendVerificationRateLimit);
+app.use("*", sessionContextMiddleware);
 
 app.get("/api/session", (c) => {
   const session = c.get("session");

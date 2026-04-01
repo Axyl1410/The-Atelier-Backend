@@ -92,6 +92,16 @@ export const auth = betterAuth({
     enabled: true,
     window: 60,
     max: 30,
+    customRules: {
+      "/sign-in/email": {
+        window: 60,
+        max: 3,
+      },
+      "/sign-up/email": {
+        window: 60,
+        max: 3,
+      },
+    },
     storage: "secondary-storage",
   },
 
