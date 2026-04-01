@@ -9,14 +9,12 @@ import {
   username,
 } from "better-auth/plugins";
 import { db } from "@/db/client";
+import { account, session, user } from "@/db/schema/auth";
 import {
-  account,
   accountRelations,
-  session,
   sessionRelations,
-  user,
   userRelations,
-} from "@/db/schema/auth";
+} from "@/db/schema/relations";
 import {
   sendChangeEmailConfirmation,
   sendResetPassword,

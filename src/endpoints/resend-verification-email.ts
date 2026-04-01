@@ -10,7 +10,7 @@ import type { AppContext } from "@/types";
 import { env } from "@/utils/cf-util";
 
 const TRAILING_SLASHES_REGEX = /\/+$/;
-const RESEND_VERIFICATION_EMAIL_TTL_SECONDS = 24 * 60 * 60;
+const RESEND_VERIFICATION_EMAIL_TTL_SECONDS = 60 * 60;
 const RESEND_VERIFICATION_EMAIL_LOCK_PREFIX =
   "rate-limit:resend-verification-email";
 

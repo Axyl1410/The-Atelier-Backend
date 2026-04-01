@@ -11,8 +11,7 @@ export async function sessionContextMiddleware(c: Context, next: Next) {
   }
 
   const path = c.req.path;
-  const isProtectedRoute =
-    path === "/api/session" || path.startsWith("/api/protected/");
+  const isProtectedRoute = path === "/api/session" || path.startsWith("/api/");
 
   if (!isProtectedRoute) {
     await next();
