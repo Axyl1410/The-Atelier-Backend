@@ -10,14 +10,14 @@ export async function sessionContextMiddleware(c: Context, next: Next) {
     return;
   }
 
-  // const path = c.req.path;
-  // const isProtectedRoute =
-  //   path === "/api/session" || path.startsWith("/api/protected/");
+  const path = c.req.path;
+  const isProtectedRoute =
+    path === "/api/session" || path.startsWith("/api/protected/");
 
-  // if (!isProtectedRoute) {
-  //   await next();
-  //   return;
-  // }
+  if (!isProtectedRoute) {
+    await next();
+    return;
+  }
 
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) {

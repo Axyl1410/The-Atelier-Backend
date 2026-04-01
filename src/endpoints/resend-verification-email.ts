@@ -24,28 +24,11 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
     },
     responses: {
       "200": {
-        description: "Verification email sent",
+        description:
+          "Request accepted (generic response to avoid email enumeration)",
         ...contentJson(
           z.object({
             status: z.literal(true),
-          })
-        ),
-      },
-      "400": {
-        description: "Invalid input or already verified",
-        ...contentJson(
-          z.object({
-            message: z.string(),
-            code: z.string(),
-          })
-        ),
-      },
-      "404": {
-        description: "User does not exist",
-        ...contentJson(
-          z.object({
-            message: z.string(),
-            code: z.string(),
           })
         ),
       },
@@ -56,6 +39,10 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
     const data = await this.getValidatedData<typeof this.schema>();
     const body = data.body as { email: string; callbackURL?: string };
     const email = body.email.trim().toLowerCase();
+    const betterAuthSecret = c.env.BETTER_AUTH_SECRET ?? env.BETTER_AUTH_SECRET;
+    const requestOrigin = new URL(c.req.url).origin;
+    const betterAuthURL =
+      c.env.BETTER_AUTH_URL ?? env.BETTER_AUTH_URL ?? requestOrigin;
 
     const [existingUser] = await db
       .getDatabase()
@@ -69,43 +56,48 @@ export class ResendVerificationEmailEndpoint extends OpenAPIRoute {
       .where(eq(userTable.email, email))
       .limit(1);
 
-    if (!existingUser) {
-      return c.json(
-        {
-          message: "User not found",
-          code: "USER_NOT_FOUND",
-        },
-        404
+    const sendTask = (async () => {
+      if (!existingUser || existingUser.emailVerified) {
+        return;
+      }
+      if (!betterAuthSecret) {
+        console.warn(
+          "[resend-verification-email] missing BETTER_AUTH_SECRET, skip sending email"
+        );
+        return;
+      }
+
+      const token = await createEmailVerificationToken(
+        betterAuthSecret,
+        existingUser.email
       );
-    }
+      const callbackURL = body.callbackURL
+        ? encodeURIComponent(body.callbackURL)
+        : encodeURIComponent("/");
+      const authBaseURL = betterAuthURL.replace(TRAILING_SLASHES_REGEX, "");
+      const verificationURL = `${authBaseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
 
-    if (existingUser.emailVerified) {
-      return c.json(
-        {
-          message: "Email already verified",
-          code: "EMAIL_ALREADY_VERIFIED",
+      await sendVerificationEmail({
+        user: {
+          email: existingUser.email,
+          name: existingUser.name,
         },
-        400
+        url: verificationURL,
+      });
+    })();
+
+    if (c.executionCtx?.waitUntil) {
+      c.executionCtx.waitUntil(
+        sendTask.catch((error) => {
+          console.warn(
+            "[resend-verification-email] background task failed:",
+            error
+          );
+        })
       );
+    } else {
+      await sendTask;
     }
-
-    const token = await createEmailVerificationToken(
-      env.BETTER_AUTH_SECRET,
-      existingUser.email
-    );
-    const callbackURL = body.callbackURL
-      ? encodeURIComponent(body.callbackURL)
-      : encodeURIComponent("/");
-    const authBaseURL = env.BETTER_AUTH_URL.replace(TRAILING_SLASHES_REGEX, "");
-    const verificationURL = `${authBaseURL}/api/auth/verify-email?token=${token}&callbackURL=${callbackURL}`;
-
-    await sendVerificationEmail({
-      user: {
-        email: existingUser.email,
-        name: existingUser.name,
-      },
-      url: verificationURL,
-    });
 
     return {
       status: true as const,
