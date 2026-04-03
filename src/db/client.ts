@@ -31,3 +31,5 @@ class DatabaseClient {
 }
 
 export const db = new DatabaseClient();
+
+export type AppDatabase = ReturnType<typeof db.getDatabase>;

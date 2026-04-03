@@ -2,7 +2,28 @@ import { ApiException, fromHono } from "chanfana";
 import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
+import {
+  DeletePostTagEndpoint,
+  GetPostTagsEndpoint,
+  PostPostTagEndpoint,
+  PutPostTagsSyncEndpoint,
+} from "./endpoints/post-tags";
+import {
+  CreatePostEndpoint,
+  DeletePostEndpoint,
+  GetPostBySlugEndpoint,
+  GetPostEndpoint,
+  ListPostsEndpoint,
+  UpdatePostEndpoint,
+} from "./endpoints/posts";
 import { ResendVerificationEmailEndpoint } from "./endpoints/resend-verification-email";
+import {
+  CreateTagEndpoint,
+  DeleteTagEndpoint,
+  GetTagEndpoint,
+  ListTagsEndpoint,
+  UpdateTagEndpoint,
+} from "./endpoints/tags";
 import { auth } from "./lib/auth";
 import { authCorsMiddleware } from "./middleware/auth-cors";
 import { resendVerificationRateLimit } from "./middleware/resend-verification-rate-limit";
@@ -75,6 +96,21 @@ const openapi = fromHono(app, {
 // Register other endpoints
 openapi.post("/dummy/:slug", DummyEndpoint);
 openapi.post("/api/resend-verification-email", ResendVerificationEmailEndpoint);
+openapi.get("/api/tags", ListTagsEndpoint);
+openapi.get("/api/tags/:tagId", GetTagEndpoint);
+openapi.post("/api/tags", CreateTagEndpoint);
+openapi.patch("/api/tags/:tagId", UpdateTagEndpoint);
+openapi.delete("/api/tags/:tagId", DeleteTagEndpoint);
+openapi.get("/api/posts", ListPostsEndpoint);
+openapi.get("/api/posts/by-slug/:slug", GetPostBySlugEndpoint);
+openapi.get("/api/posts/:postId", GetPostEndpoint);
+openapi.post("/api/posts", CreatePostEndpoint);
+openapi.patch("/api/posts/:postId", UpdatePostEndpoint);
+openapi.delete("/api/posts/:postId", DeletePostEndpoint);
+openapi.get("/api/posts/:postId/tags", GetPostTagsEndpoint);
+openapi.post("/api/posts/:postId/tags", PostPostTagEndpoint);
+openapi.put("/api/posts/:postId/tags", PutPostTagsSyncEndpoint);
+openapi.delete("/api/posts/:postId/tags/:tagId", DeletePostTagEndpoint);
 
 // Export the Hono app
 export default app;
