@@ -63,7 +63,7 @@ function selectTagsForPost(postId: string) {
 
 export class GetPostTagsEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Post Tags"],
     summary: "List tags linked to a post",
     request: {
       params: z.object({
@@ -94,7 +94,7 @@ export class GetPostTagsEndpoint extends OpenAPIRoute {
 
 export class PostPostTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Post Tags"],
     summary: "Attach a tag to a post",
     request: {
       params: z.object({
@@ -165,7 +165,7 @@ export class PostPostTagEndpoint extends OpenAPIRoute {
 
 export class DeletePostTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Post Tags"],
     summary: "Remove a tag from a post",
     request: {
       params: z.object({
@@ -216,7 +216,7 @@ export class DeletePostTagEndpoint extends OpenAPIRoute {
 
 export class PutPostTagsSyncEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Post Tags"],
     summary: "Replace all tags for a post",
     request: {
       params: z.object({

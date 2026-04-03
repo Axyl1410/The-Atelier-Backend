@@ -57,7 +57,7 @@ function throwConflict(message: string): never {
 
 export class ListTagsEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Tags"],
     summary: "List all tags",
     request: {
       query: z.object({
@@ -104,7 +104,7 @@ export class ListTagsEndpoint extends OpenAPIRoute {
 
 export class GetTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Tags"],
     summary: "Get a tag by id",
     request: {
       params: z.object({
@@ -145,7 +145,7 @@ export class GetTagEndpoint extends OpenAPIRoute {
 
 export class CreateTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Tags"],
     summary: "Create a tag (admin only)",
     request: {
       body: contentJson(
@@ -220,7 +220,7 @@ export class CreateTagEndpoint extends OpenAPIRoute {
 
 export class UpdateTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Tags"],
     summary: "Update a tag (admin only)",
     request: {
       params: z.object({
@@ -338,7 +338,7 @@ export class UpdateTagEndpoint extends OpenAPIRoute {
 
 export class DeleteTagEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Tags"],
     summary: "Delete a tag (admin only)",
     request: {
       params: z.object({

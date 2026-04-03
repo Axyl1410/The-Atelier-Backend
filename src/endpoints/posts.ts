@@ -99,7 +99,7 @@ function mapDetailRow(row: typeof post.$inferSelect) {
 
 export class ListPostsEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "List posts (cursor pagination for infinite scroll)",
     request: {
       query: z.object({
@@ -180,7 +180,7 @@ export class ListPostsEndpoint extends OpenAPIRoute {
 
 export class GetPostBySlugEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "Get a post by slug",
     request: {
       params: z.object({
@@ -214,7 +214,7 @@ export class GetPostBySlugEndpoint extends OpenAPIRoute {
 
 export class GetPostEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "Get a post by id",
     request: {
       params: z.object({
@@ -243,7 +243,7 @@ export class GetPostEndpoint extends OpenAPIRoute {
 
 export class CreatePostEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "Create a post",
     request: {
       body: contentJson(
@@ -318,7 +318,7 @@ export class CreatePostEndpoint extends OpenAPIRoute {
 
 export class UpdatePostEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "Update a post",
     request: {
       params: z.object({
@@ -434,7 +434,7 @@ export class UpdatePostEndpoint extends OpenAPIRoute {
 
 export class DeletePostEndpoint extends OpenAPIRoute {
   schema = {
-    tags: ["Content"],
+    tags: ["Posts"],
     summary: "Delete a post",
     request: {
       params: z.object({
