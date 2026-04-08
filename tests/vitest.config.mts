@@ -23,7 +23,15 @@ export default defineConfig({
         configPath: path.resolve(__dirname, "../wrangler.jsonc"),
       },
       miniflare: {
-        compatibilityFlags: ["nodejs_compat"],
+        compatibilityFlags: [
+          "nodejs_compat",
+          "enable_nodejs_tty_module",
+          "enable_nodejs_fs_module",
+          "enable_nodejs_http_modules",
+          "enable_nodejs_perf_hooks_module",
+          "enable_nodejs_v8_module",
+          "enable_nodejs_process_v2",
+        ],
       },
     }),
   ],
