@@ -31,6 +31,7 @@ import {
   UpdateTagEndpoint,
 } from "./endpoints/tags";
 import { auth } from "./lib/auth";
+import { apiRateLimitMiddleware } from "./middleware/api-rate-limit";
 import { authCorsMiddleware } from "./middleware/auth-cors";
 import { resendVerificationRateLimit } from "./middleware/resend-verification-rate-limit";
 import { sessionContextMiddleware } from "./middleware/session-context";
@@ -48,6 +49,7 @@ app.use("/api/auth/*", authCorsMiddleware);
 
 app.use("/api/resend-verification-email", resendVerificationRateLimit);
 app.use("*", sessionContextMiddleware);
+app.use("/api/*", apiRateLimitMiddleware);
 
 app.get("/api/session", (c) => {
   const session = c.get("session");

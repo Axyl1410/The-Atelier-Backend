@@ -18,6 +18,17 @@ export async function sessionContextMiddleware(c: Context, next: Next) {
     return;
   }
 
+  // Fast path for anonymous requests: skip costly session lookup
+  // unless the request carries auth hints.
+  const hasAuthHeaders =
+    c.req.raw.headers.has("cookie") || c.req.raw.headers.has("authorization");
+  if (!hasAuthHeaders) {
+    c.set("user", null);
+    c.set("session", null);
+    await next();
+    return;
+  }
+
   const session = await auth.api.getSession({ headers: c.req.raw.headers });
   if (!session) {
     c.set("user", null);
