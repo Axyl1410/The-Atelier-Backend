@@ -55,4 +55,3 @@ export class GetProfileEndpoint extends OpenAPIRoute {
     };
   }
 }
-

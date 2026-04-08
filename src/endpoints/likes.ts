@@ -190,4 +190,3 @@ export class GetMyPostLikeStatusEndpoint extends OpenAPIRoute {
     return { success: true as const, liked: Boolean(existing) };
   }
 }
-
