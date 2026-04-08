@@ -36,15 +36,10 @@ const tagOneResponse = contentJson(
   })
 );
 
-const jsonApiError = contentJson(
+const apiErrorResponse = contentJson(
   z.object({
-    success: z.literal(false),
-    errors: z.array(
-      z.object({
-        code: z.number(),
-        message: z.string(),
-      })
-    ),
+    message: z.string(),
+    code: z.union([z.string(), z.number()]).optional(),
   })
 );
 
@@ -116,7 +111,10 @@ export class GetTagEndpoint extends OpenAPIRoute {
         description: "Tag",
         ...tagOneResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Tag not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -162,15 +160,15 @@ export class CreateTagEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not an admin",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "409": {
         description: "Name or slug already taken",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
     },
   };
@@ -244,16 +242,19 @@ export class UpdateTagEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not an admin",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Tag not found",
+        ...apiErrorResponse,
+      },
       "409": {
         description: "Name or slug already taken",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
     },
   };
@@ -356,13 +357,16 @@ export class DeleteTagEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not an admin",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Tag not found",
+        ...apiErrorResponse,
+      },
     },
   };
 

@@ -26,4 +26,3 @@ describe("Comments API Integration Tests", () => {
     await expect(res.json()).resolves.toEqual({ message: "Post not found" });
   });
 });
-

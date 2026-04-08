@@ -28,18 +28,15 @@ function base64UrlToUtf8(encoded: string): string {
   return new TextDecoder().decode(bytes);
 }
 
-export function encodeCursorPayload<T extends { createdAt: number; id: string }>(
-  payload: T
-): string {
+export function encodeCursorPayload<
+  T extends { createdAt: number; id: string },
+>(payload: T): string {
   return utf8ToBase64Url(
     JSON.stringify({ createdAt: payload.createdAt, id: payload.id })
   );
 }
 
-export function decodeCursorPayload<T>(
-  raw: string,
-  schema: z.ZodType<T>
-): T {
+export function decodeCursorPayload<T>(raw: string, schema: z.ZodType<T>): T {
   try {
     const json = base64UrlToUtf8(raw);
     return schema.parse(JSON.parse(json));
@@ -47,4 +44,3 @@ export function decodeCursorPayload<T>(
     throw new InputValidationException("Invalid cursor", ["query", "cursor"]);
   }
 }
-

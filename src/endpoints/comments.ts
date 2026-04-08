@@ -1,8 +1,4 @@
-import {
-  contentJson,
-  NotFoundException,
-  OpenAPIRoute,
-} from "chanfana";
+import { contentJson, NotFoundException, OpenAPIRoute } from "chanfana";
 import { and, desc, eq, isNull } from "drizzle-orm";
 import { z } from "zod";
 import { db } from "@/db/client";
@@ -45,7 +41,12 @@ const commentOneResponse = contentJson(
     comment: commentDto,
   })
 );
-const messageErrorResponse = contentJson(z.object({ message: z.string() }));
+const apiErrorResponse = contentJson(
+  z.object({
+    message: z.string(),
+    code: z.union([z.string(), z.number()]).optional(),
+  })
+);
 
 function mapRow(row: typeof comment.$inferSelect) {
   return {
@@ -95,11 +96,11 @@ export class ListPostCommentsEndpoint extends OpenAPIRoute {
       },
       "400": {
         description: "Invalid query parameters",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "404": {
         description: "Post or parent comment not found",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
     },
   };
@@ -187,11 +188,11 @@ export class CreatePostCommentEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "404": {
         description: "Post or parent comment not found",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
     },
   };
@@ -258,15 +259,15 @@ export class UpdateCommentEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the author",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "404": {
         description: "Post or comment not found",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
     },
   };
@@ -331,15 +332,15 @@ export class DeleteCommentEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the author",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
       "404": {
         description: "Post or comment not found",
-        ...messageErrorResponse,
+        ...apiErrorResponse,
       },
     },
   };

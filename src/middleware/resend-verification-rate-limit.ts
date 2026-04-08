@@ -11,10 +11,7 @@ export async function resendVerificationRateLimit(c: Context, next: Next) {
     await checkResendVerificationIpRateLimit(c.req.raw.headers);
 
   if (!success) {
-    return c.json(
-      { message: "Too many requests" },
-      429
-    );
+    return c.json({ message: "Too many requests", code: "RATE_LIMITED" }, 429);
   }
 
   await next();

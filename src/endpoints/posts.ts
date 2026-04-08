@@ -1,7 +1,6 @@
 import {
   ApiException,
   contentJson,
-  InputValidationException,
   NotFoundException,
   OpenAPIRoute,
 } from "chanfana";
@@ -25,15 +24,10 @@ import {
 import type { AppContext } from "@/types";
 import { allocateUniquePostSlug, slugify } from "@/utils/slugify";
 
-const jsonApiError = contentJson(
+const apiErrorResponse = contentJson(
   z.object({
-    success: z.literal(false),
-    errors: z.array(
-      z.object({
-        code: z.number(),
-        message: z.string(),
-      })
-    ),
+    message: z.string(),
+    code: z.union([z.string(), z.number()]).optional(),
   })
 );
 
@@ -113,10 +107,13 @@ export class ListPostsEndpoint extends OpenAPIRoute {
         description: "Page of posts",
         ...postListResponse,
       },
-      ...InputValidationException.schema(),
+      "400": {
+        description: "Invalid query parameters",
+        ...apiErrorResponse,
+      },
       "401": {
         description: "Required for scope=mine",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
     },
   };
@@ -192,7 +189,10 @@ export class GetPostBySlugEndpoint extends OpenAPIRoute {
         description: "Post",
         ...postDetailResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -226,7 +226,10 @@ export class GetPostEndpoint extends OpenAPIRoute {
         description: "Post",
         ...postDetailResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -264,7 +267,11 @@ export class CreatePostEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
+      },
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
       },
     },
   };
@@ -353,16 +360,19 @@ export class UpdatePostEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the author",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
       "409": {
         description: "Slug already taken",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
     },
   };
@@ -448,13 +458,16 @@ export class DeletePostEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the author",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
     },
   };
 

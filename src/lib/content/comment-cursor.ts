@@ -26,4 +26,3 @@ export function cursorOlderThanPredicate(c: CommentListCursor): SQL {
     and(eq(comment.createdAt, at), lt(comment.id, c.id))
   ) as SQL;
 }
-

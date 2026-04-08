@@ -36,15 +36,10 @@ const successOnlyResponse = contentJson(
   })
 );
 
-const jsonApiError = contentJson(
+const apiErrorResponse = contentJson(
   z.object({
-    success: z.literal(false),
-    errors: z.array(
-      z.object({
-        code: z.number(),
-        message: z.string(),
-      })
-    ),
+    message: z.string(),
+    code: z.union([z.string(), z.number()]).optional(),
   })
 );
 
@@ -75,7 +70,10 @@ export class GetPostTagsEndpoint extends OpenAPIRoute {
         description: "Tags for the post",
         ...tagsListResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -117,13 +115,16 @@ export class PostPostTagEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the post author",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post or tag not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -180,13 +181,16 @@ export class DeletePostTagEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the post author",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
+      "404": {
+        description: "Post or post-tag link not found",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -235,14 +239,20 @@ export class PutPostTagsSyncEndpoint extends OpenAPIRoute {
       },
       "401": {
         description: "Not authenticated",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
       "403": {
         description: "Not the post author",
-        ...jsonApiError,
+        ...apiErrorResponse,
       },
-      ...NotFoundException.schema(),
-      ...InputValidationException.schema(),
+      "400": {
+        description: "Invalid tagIds payload",
+        ...apiErrorResponse,
+      },
+      "404": {
+        description: "Post not found",
+        ...apiErrorResponse,
+      },
     },
   };
 

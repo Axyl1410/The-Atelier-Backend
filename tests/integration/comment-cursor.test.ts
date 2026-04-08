@@ -18,4 +18,3 @@ describe("comment list cursor", () => {
     );
   });
 });
-
