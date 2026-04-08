@@ -1,11 +1,14 @@
-import { SELF } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 
 describe("Post Likes API Integration Tests", () => {
   it("POST /api/posts/:postId/likes requires auth", async () => {
-    const res = await SELF.fetch("http://local.test/api/posts/post-1/likes", {
-      method: "POST",
-    });
+    const res = await exports.default.fetch(
+      "http://local.test/api/posts/post-1/likes",
+      {
+        method: "POST",
+      }
+    );
 
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toEqual({
@@ -15,9 +18,12 @@ describe("Post Likes API Integration Tests", () => {
   });
 
   it("DELETE /api/posts/:postId/likes requires auth", async () => {
-    const res = await SELF.fetch("http://local.test/api/posts/post-1/likes", {
-      method: "DELETE",
-    });
+    const res = await exports.default.fetch(
+      "http://local.test/api/posts/post-1/likes",
+      {
+        method: "DELETE",
+      }
+    );
 
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toEqual({
@@ -27,9 +33,12 @@ describe("Post Likes API Integration Tests", () => {
   });
 
   it("GET /api/posts/:postId/likes/me requires auth", async () => {
-    const res = await SELF.fetch("http://local.test/api/posts/post-1/likes/me", {
-      method: "GET",
-    });
+    const res = await exports.default.fetch(
+      "http://local.test/api/posts/post-1/likes/me",
+      {
+        method: "GET",
+      }
+    );
 
     expect(res.status).toBe(401);
     await expect(res.json()).resolves.toEqual({

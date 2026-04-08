@@ -1,9 +1,9 @@
-import { SELF } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { describe, expect, it } from "vitest";
 
 describe("Comments API Integration Tests", () => {
   it("POST /api/posts/:postId/comments requires auth", async () => {
-    const res = await SELF.fetch(
+    const res = await exports.default.fetch(
       "http://local.test/api/posts/post-does-not-matter/comments",
       {
         method: "POST",
@@ -17,7 +17,7 @@ describe("Comments API Integration Tests", () => {
   });
 
   it("GET /api/posts/:postId/comments returns 404 when post not found", async () => {
-    const res = await SELF.fetch(
+    const res = await exports.default.fetch(
       "http://local.test/api/posts/does-not-exist/comments",
       { method: "GET" }
     );

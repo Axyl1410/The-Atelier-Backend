@@ -1,4 +1,4 @@
-import { SELF } from "cloudflare:test";
+import { exports } from "cloudflare:workers";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 describe("Dummy API Integration Tests", () => {
@@ -10,11 +10,14 @@ describe("Dummy API Integration Tests", () => {
     it("should return the log details", async () => {
       const slug = "test-slug";
       const requestBody = { name: "Test Name" };
-      const response = await SELF.fetch(`http://local.test/dummy/${slug}`, {
+      const response = await exports.default.fetch(
+        `http://local.test/dummy/${slug}`,
+        {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(requestBody),
-      });
+        }
+      );
       const body = await response.json<{ success: boolean; result: any }>();
 
       expect(response.status).toBe(200);
