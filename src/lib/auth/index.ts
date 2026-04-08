@@ -51,6 +51,8 @@ export const trustedBrowserOrigins = [
     "http://127.0.0.1:8787",
     "http://localhost:8787",
     "http://localhost:3000",
+    // Vitest + @cloudflare/vitest-pool-workers use this host for SELF.fetch
+    "http://local.test",
   ]),
 ];
 
@@ -135,6 +137,8 @@ export const auth = betterAuth({
     username(),
     admin(),
     haveIBeenPwned(),
-    testUtils(),
+    // Integration/E2E helpers: https://better-auth.com/docs/plugins/test-utils
+    // Keep disabled in production if you expose this Worker publicly (see docs).
+    ...(env.ENABLE_BETTER_AUTH_TEST_UTILS === "true" ? [testUtils()] : []),
   ],
 });
