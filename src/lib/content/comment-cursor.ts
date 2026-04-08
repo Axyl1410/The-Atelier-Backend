@@ -1,6 +1,6 @@
 import { and, eq, lt, or, type SQL } from "drizzle-orm";
 import { z } from "zod";
-import { post } from "@/db/schema/content";
+import { comment } from "@/db/schema/content";
 import { decodeCursorPayload, encodeCursorPayload } from "./cursor-codec";
 
 const cursorPayloadSchema = z.object({
@@ -8,21 +8,22 @@ const cursorPayloadSchema = z.object({
   id: z.string().min(1),
 });
 
-export type PostListCursor = z.infer<typeof cursorPayloadSchema>;
+export type CommentListCursor = z.infer<typeof cursorPayloadSchema>;
 
-export function encodePostListCursor(c: PostListCursor): string {
+export function encodeCommentListCursor(c: CommentListCursor): string {
   return encodeCursorPayload(c);
 }
 
-export function decodePostListCursor(raw: string): PostListCursor {
+export function decodeCommentListCursor(raw: string): CommentListCursor {
   return decodeCursorPayload(raw, cursorPayloadSchema);
 }
 
 /** Next page for order `createdAt DESC, id DESC` (strictly older than cursor). */
-export function cursorOlderThanPredicate(c: PostListCursor): SQL {
+export function cursorOlderThanPredicate(c: CommentListCursor): SQL {
   const at = new Date(c.createdAt);
   return or(
-    lt(post.createdAt, at),
-    and(eq(post.createdAt, at), lt(post.id, c.id))
+    lt(comment.createdAt, at),
+    and(eq(comment.createdAt, at), lt(comment.id, c.id))
   ) as SQL;
 }
+

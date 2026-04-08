@@ -3,6 +3,12 @@ import { Hono } from "hono";
 import type { ContentfulStatusCode } from "hono/utils/http-status";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
 import {
+  CreatePostCommentEndpoint,
+  DeleteCommentEndpoint,
+  ListPostCommentsEndpoint,
+  UpdateCommentEndpoint,
+} from "./endpoints/comments";
+import {
   DeletePostTagEndpoint,
   GetPostTagsEndpoint,
   PostPostTagEndpoint,
@@ -101,6 +107,10 @@ openapi.get("/api/posts/:postId/tags", GetPostTagsEndpoint);
 openapi.post("/api/posts/:postId/tags", PostPostTagEndpoint);
 openapi.put("/api/posts/:postId/tags", PutPostTagsSyncEndpoint);
 openapi.delete("/api/posts/:postId/tags/:tagId", DeletePostTagEndpoint);
+openapi.get("/api/posts/:postId/comments", ListPostCommentsEndpoint);
+openapi.post("/api/posts/:postId/comments", CreatePostCommentEndpoint);
+openapi.patch("/api/comments/:commentId", UpdateCommentEndpoint);
+openapi.delete("/api/comments/:commentId", DeleteCommentEndpoint);
 
 // Export the Hono app
 export default app;
