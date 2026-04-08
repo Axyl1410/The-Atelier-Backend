@@ -1,12 +1,16 @@
 import { contentJson, OpenAPIRoute } from "chanfana";
-import { and, eq } from "drizzle-orm";
 import { z } from "zod";
-import { db } from "@/db/client";
-import { postLike } from "@/db/schema/social";
 import {
-  ensureCanViewPostDetail,
-  fetchPostById,
-} from "@/lib/content/post-authorization";
+  getMyLikeStatusUseCase,
+  likePostUseCase,
+  unlikePostUseCase,
+} from "@/application/content/likes";
+import {
+  deleteLike,
+  findPostById,
+  hasLike,
+  insertLike,
+} from "@/lib/content/likes-repository";
 import { ensureAuthenticated } from "@/lib/content/post-tag-authorization";
 import type { AppContext } from "@/types";
 
@@ -39,6 +43,16 @@ function isUniqueConstraintForPostLike(error: unknown): boolean {
     error.message.includes("post_like.userId") &&
     error.message.includes("post_like.postId")
   );
+}
+
+function getLikeDeps() {
+  return {
+    findPostById,
+    hasLike,
+    insertLike,
+    deleteLike,
+    isUniqueLikeError: isUniqueConstraintForPostLike,
+  };
 }
 
 export class PostLikeEndpoint extends OpenAPIRoute {
@@ -74,32 +88,12 @@ export class PostLikeEndpoint extends OpenAPIRoute {
     const user = c.get("user");
     ensureAuthenticated(user);
     const data = await this.getValidatedData<typeof this.schema>();
-    const { postId } = data.params;
-    const database = db.getDatabase();
-
-    const postRow = await fetchPostById(database, postId);
-    ensureCanViewPostDetail(postRow, user);
-
-    const [existing] = await database
-      .select({ postId: postLike.postId })
-      .from(postLike)
-      .where(and(eq(postLike.userId, user.id), eq(postLike.postId, postId)))
-      .limit(1);
-
-    if (existing) {
-      return Response.json({ success: true as const }, { status: 200 });
-    }
-
-    try {
-      await database.insert(postLike).values({ userId: user.id, postId });
-    } catch (error) {
-      // Preserve idempotent behavior under concurrent like requests.
-      if (isUniqueConstraintForPostLike(error)) {
-        return Response.json({ success: true as const }, { status: 200 });
-      }
-      throw error;
-    }
-    return Response.json({ success: true as const }, { status: 201 });
+    const result = await likePostUseCase(
+      data.params.postId,
+      user,
+      getLikeDeps()
+    );
+    return Response.json(result.body, { status: result.status });
   }
 }
 
@@ -132,17 +126,7 @@ export class DeletePostLikeEndpoint extends OpenAPIRoute {
     const user = c.get("user");
     ensureAuthenticated(user);
     const data = await this.getValidatedData<typeof this.schema>();
-    const { postId } = data.params;
-    const database = db.getDatabase();
-
-    const postRow = await fetchPostById(database, postId);
-    ensureCanViewPostDetail(postRow, user);
-
-    await database
-      .delete(postLike)
-      .where(and(eq(postLike.userId, user.id), eq(postLike.postId, postId)));
-
-    return { success: true as const };
+    return await unlikePostUseCase(data.params.postId, user, getLikeDeps());
   }
 }
 
@@ -175,18 +159,10 @@ export class GetMyPostLikeStatusEndpoint extends OpenAPIRoute {
     const user = c.get("user");
     ensureAuthenticated(user);
     const data = await this.getValidatedData<typeof this.schema>();
-    const { postId } = data.params;
-    const database = db.getDatabase();
-
-    const postRow = await fetchPostById(database, postId);
-    ensureCanViewPostDetail(postRow, user);
-
-    const [existing] = await database
-      .select({ postId: postLike.postId })
-      .from(postLike)
-      .where(and(eq(postLike.userId, user.id), eq(postLike.postId, postId)))
-      .limit(1);
-
-    return { success: true as const, liked: Boolean(existing) };
+    return await getMyLikeStatusUseCase(
+      data.params.postId,
+      user,
+      getLikeDeps()
+    );
   }
 }

@@ -1,5 +1,6 @@
 import { ApiException, contentJson, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
+import { getCurrentProfileUseCase } from "@/application/auth/get-current-profile";
 import type { AppContext } from "@/types";
 
 const profileResponse = contentJson(
@@ -44,14 +45,10 @@ export class GetProfileEndpoint extends OpenAPIRoute {
   };
 
   handle(c: AppContext) {
-    const user = c.get("user");
-    if (!user) {
+    const result = getCurrentProfileUseCase(c.get("user"));
+    if (!result) {
       throwUnauthorized();
     }
-
-    return {
-      success: true as const,
-      user,
-    };
+    return result;
   }
 }

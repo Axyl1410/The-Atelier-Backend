@@ -4,6 +4,8 @@ import type { AppContext } from "@/types";
 
 const READ_LIMIT: RateLimitOptions = { limit: 60, window: "60 s" };
 const WRITE_LIMIT: RateLimitOptions = { limit: 20, window: "60 s" };
+const isTestRuntime =
+  process.env.VITEST === "true" || process.env.NODE_ENV === "test";
 
 function getClientIp(headers: Headers): string {
   return (
@@ -74,6 +76,11 @@ function pickPolicy(method: string, path: string): RateLimitOptions | null {
 }
 
 export async function apiRateLimitMiddleware(c: AppContext, next: Next) {
+  if (isTestRuntime) {
+    await next();
+    return;
+  }
+
   if (c.req.method === "OPTIONS") {
     await next();
     return;

@@ -1,14 +1,22 @@
-import {
-  ApiException,
-  contentJson,
-  NotFoundException,
-  OpenAPIRoute,
-} from "chanfana";
-import { and, asc, eq, ne } from "drizzle-orm";
+import { contentJson, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
+import {
+  createTagUseCase,
+  deleteTagUseCase,
+  getTagUseCase,
+  listTagsUseCase,
+  updateTagUseCase,
+} from "@/application/content/tags";
 import { db } from "@/db/client";
-import { tag } from "@/db/schema/content";
-import { ensureAdmin } from "@/lib/content/tag-authorization";
+import {
+  createTag,
+  deleteTag,
+  findTagById,
+  hasTagName,
+  hasTagSlug,
+  listTags,
+  updateTag,
+} from "@/lib/content/tags-repository";
 import type { AppContext } from "@/types";
 import {
   allocateUniqueTagSlug,
@@ -43,11 +51,21 @@ const apiErrorResponse = contentJson(
   })
 );
 
-function throwConflict(message: string): never {
-  const err = new ApiException(message);
-  err.status = 409;
-  err.code = 7013;
-  throw err;
+function getTagDeps() {
+  return {
+    listTags,
+    findTagById,
+    hasTagName,
+    hasTagSlug,
+    createTag,
+    updateTag,
+    deleteTag,
+    allocateUniqueSlugFromName: (name: string) =>
+      allocateUniqueTagSlug(db.getDatabase(), name),
+    slugify,
+    tagNameOrSlugLike,
+    generateTagId: () => crypto.randomUUID(),
+  };
 }
 
 export class ListTagsEndpoint extends OpenAPIRoute {
@@ -69,31 +87,7 @@ export class ListTagsEndpoint extends OpenAPIRoute {
 
   async handle(_c: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();
-    const q = data.query?.q;
-    const database = db.getDatabase();
-
-    const nameOrSlugFilter = q === undefined ? undefined : tagNameOrSlugLike(q);
-
-    const tags = nameOrSlugFilter
-      ? await database
-          .select({
-            id: tag.id,
-            name: tag.name,
-            slug: tag.slug,
-          })
-          .from(tag)
-          .where(nameOrSlugFilter)
-          .orderBy(asc(tag.name))
-      : await database
-          .select({
-            id: tag.id,
-            name: tag.name,
-            slug: tag.slug,
-          })
-          .from(tag)
-          .orderBy(asc(tag.name));
-
-    return { success: true as const, tags };
+    return await listTagsUseCase(data.query?.q, getTagDeps());
   }
 }
 
@@ -120,24 +114,7 @@ export class GetTagEndpoint extends OpenAPIRoute {
 
   async handle(_c: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();
-    const { tagId } = data.params;
-    const database = db.getDatabase();
-
-    const [row] = await database
-      .select({
-        id: tag.id,
-        name: tag.name,
-        slug: tag.slug,
-      })
-      .from(tag)
-      .where(eq(tag.id, tagId))
-      .limit(1);
-
-    if (!row) {
-      throw new NotFoundException("Tag not found");
-    }
-
-    return { success: true as const, tag: row };
+    return await getTagUseCase(data.params.tagId, getTagDeps());
   }
 }
 
@@ -174,45 +151,13 @@ export class CreateTagEndpoint extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    ensureAdmin(c.get("user"));
     const data = await this.getValidatedData<typeof this.schema>();
-    const name = data.body.name.trim();
-    const database = db.getDatabase();
-
-    const [nameTaken] = await database
-      .select({ id: tag.id })
-      .from(tag)
-      .where(eq(tag.name, name))
-      .limit(1);
-    if (nameTaken) {
-      throwConflict("Tag name already taken");
-    }
-
-    let finalSlug: string;
-    if (data.body.slug === undefined) {
-      finalSlug = await allocateUniqueTagSlug(database, name);
-    } else {
-      finalSlug = slugify(data.body.slug);
-      const [slugTaken] = await database
-        .select({ id: tag.id })
-        .from(tag)
-        .where(eq(tag.slug, finalSlug))
-        .limit(1);
-      if (slugTaken) {
-        throwConflict("Tag slug already taken");
-      }
-    }
-
-    const id = crypto.randomUUID();
-    await database.insert(tag).values({ id, name, slug: finalSlug });
-
-    return Response.json(
-      {
-        success: true as const,
-        tag: { id, name, slug: finalSlug },
-      },
-      { status: 201 }
+    const created = await createTagUseCase(
+      data.body,
+      c.get("user"),
+      getTagDeps()
     );
+    return Response.json(created.body, { status: created.status });
   }
 }
 
@@ -260,80 +205,13 @@ export class UpdateTagEndpoint extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    ensureAdmin(c.get("user"));
     const data = await this.getValidatedData<typeof this.schema>();
-    const { tagId } = data.params;
-    const database = db.getDatabase();
-
-    const [current] = await database
-      .select({
-        id: tag.id,
-        name: tag.name,
-        slug: tag.slug,
-      })
-      .from(tag)
-      .where(eq(tag.id, tagId))
-      .limit(1);
-
-    if (!current) {
-      throw new NotFoundException("Tag not found");
-    }
-
-    const newName =
-      data.body.name === undefined ? undefined : data.body.name.trim();
-    const newSlugRaw = data.body.slug;
-
-    if (newName !== undefined) {
-      const [other] = await database
-        .select({ id: tag.id })
-        .from(tag)
-        .where(and(eq(tag.name, newName), ne(tag.id, tagId)))
-        .limit(1);
-      if (other) {
-        throwConflict("Tag name already taken");
-      }
-    }
-
-    if (newSlugRaw !== undefined) {
-      const nextSlug = slugify(newSlugRaw);
-      const [other] = await database
-        .select({ id: tag.id })
-        .from(tag)
-        .where(and(eq(tag.slug, nextSlug), ne(tag.id, tagId)))
-        .limit(1);
-      if (other) {
-        throwConflict("Tag slug already taken");
-      }
-    }
-
-    const patch: { name?: string; slug?: string } = {};
-    if (newName !== undefined) {
-      patch.name = newName;
-    }
-    if (newSlugRaw !== undefined) {
-      patch.slug = slugify(newSlugRaw);
-    }
-
-    await database.update(tag).set(patch).where(eq(tag.id, tagId));
-
-    const [updated] = await database
-      .select({
-        id: tag.id,
-        name: tag.name,
-        slug: tag.slug,
-      })
-      .from(tag)
-      .where(eq(tag.id, tagId))
-      .limit(1);
-
-    if (!updated) {
-      throw new NotFoundException("Tag not found");
-    }
-
-    return {
-      success: true as const,
-      tag: updated,
-    };
+    return await updateTagUseCase(
+      data.params.tagId,
+      data.body,
+      c.get("user"),
+      getTagDeps()
+    );
   }
 }
 
@@ -371,20 +249,11 @@ export class DeleteTagEndpoint extends OpenAPIRoute {
   };
 
   async handle(c: AppContext) {
-    ensureAdmin(c.get("user"));
     const data = await this.getValidatedData<typeof this.schema>();
-    const { tagId } = data.params;
-    const database = db.getDatabase();
-
-    const removed = await database
-      .delete(tag)
-      .where(eq(tag.id, tagId))
-      .returning({ id: tag.id });
-
-    if (removed.length === 0) {
-      throw new NotFoundException("Tag not found");
-    }
-
-    return { success: true as const };
+    return await deleteTagUseCase(
+      data.params.tagId,
+      c.get("user"),
+      getTagDeps()
+    );
   }
 }

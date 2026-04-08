@@ -1,20 +1,22 @@
-import {
-  contentJson,
-  InputValidationException,
-  NotFoundException,
-  OpenAPIRoute,
-} from "chanfana";
-import { and, eq, inArray } from "drizzle-orm";
+import { contentJson, OpenAPIRoute } from "chanfana";
 import { z } from "zod";
-import { db } from "@/db/client";
-import { postTag, tag } from "@/db/schema/content";
 import {
-  ensureAuthenticated,
-  ensureCanViewPostTags,
-  ensurePostAuthor,
-  ensurePostExists,
-  fetchPostForTagAccess,
-} from "@/lib/content/post-tag-authorization";
+  addPostTagUseCase,
+  deletePostTagUseCase,
+  getPostTagsUseCase,
+  syncPostTagsUseCase,
+} from "@/application/content/post-tags";
+import { ensureAuthenticated } from "@/lib/content/post-tag-authorization";
+import {
+  countExistingTags,
+  deletePostTagLink,
+  findPostForAccess,
+  findTagById,
+  hasPostTagLink,
+  insertPostTagLink,
+  listTagsForPost,
+  syncPostTags,
+} from "@/lib/content/post-tags-repository";
 import type { AppContext } from "@/types";
 
 const tagDto = z.object({
@@ -43,17 +45,17 @@ const apiErrorResponse = contentJson(
   })
 );
 
-function selectTagsForPost(postId: string) {
-  const database = db.getDatabase();
-  return database
-    .select({
-      id: tag.id,
-      name: tag.name,
-      slug: tag.slug,
-    })
-    .from(postTag)
-    .innerJoin(tag, eq(postTag.tagId, tag.id))
-    .where(eq(postTag.postId, postId));
+function getPostTagDeps() {
+  return {
+    findPostForAccess,
+    listTagsForPost,
+    findTagById,
+    hasPostTagLink,
+    insertPostTagLink,
+    deletePostTagLink,
+    countExistingTags,
+    syncPostTags,
+  };
 }
 
 export class GetPostTagsEndpoint extends OpenAPIRoute {
@@ -79,14 +81,11 @@ export class GetPostTagsEndpoint extends OpenAPIRoute {
 
   async handle(c: AppContext) {
     const data = await this.getValidatedData<typeof this.schema>();
-    const { postId } = data.params;
-    const database = db.getDatabase();
-    const row = await fetchPostForTagAccess(database, postId);
-    ensurePostExists(row);
-    ensureCanViewPostTags(row, c.get("user"));
-
-    const tags = await selectTagsForPost(postId);
-    return { success: true as const, tags };
+    return await getPostTagsUseCase(
+      data.params.postId,
+      c.get("user"),
+      getPostTagDeps()
+    );
   }
 }
 
@@ -134,33 +133,13 @@ export class PostPostTagEndpoint extends OpenAPIRoute {
     const { tagId } = data.body;
     const user = c.get("user");
     ensureAuthenticated(user);
-
-    const database = db.getDatabase();
-    const row = await fetchPostForTagAccess(database, postId);
-    ensurePostExists(row);
-    ensurePostAuthor(row, user);
-
-    const [tagRow] = await database
-      .select({ id: tag.id })
-      .from(tag)
-      .where(eq(tag.id, tagId))
-      .limit(1);
-    if (!tagRow) {
-      throw new NotFoundException("Tag not found");
-    }
-
-    const [existing] = await database
-      .select({ postId: postTag.postId })
-      .from(postTag)
-      .where(and(eq(postTag.postId, postId), eq(postTag.tagId, tagId)))
-      .limit(1);
-
-    if (existing) {
-      return Response.json({ success: true as const }, { status: 200 });
-    }
-
-    await database.insert(postTag).values({ postId, tagId });
-    return Response.json({ success: true as const }, { status: 201 });
+    const result = await addPostTagUseCase(
+      postId,
+      tagId,
+      user,
+      getPostTagDeps()
+    );
+    return Response.json(result.body, { status: result.status });
   }
 }
 
@@ -199,22 +178,7 @@ export class DeletePostTagEndpoint extends OpenAPIRoute {
     const { postId, tagId } = data.params;
     const user = c.get("user");
     ensureAuthenticated(user);
-
-    const database = db.getDatabase();
-    const row = await fetchPostForTagAccess(database, postId);
-    ensurePostExists(row);
-    ensurePostAuthor(row, user);
-
-    const removed = await database
-      .delete(postTag)
-      .where(and(eq(postTag.postId, postId), eq(postTag.tagId, tagId)))
-      .returning({ postId: postTag.postId });
-
-    if (removed.length === 0) {
-      throw new NotFoundException("Post tag link not found");
-    }
-
-    return { success: true as const };
+    return await deletePostTagUseCase(postId, tagId, user, getPostTagDeps());
   }
 }
 
@@ -262,58 +226,6 @@ export class PutPostTagsSyncEndpoint extends OpenAPIRoute {
     const { tagIds } = data.body;
     const user = c.get("user");
     ensureAuthenticated(user);
-
-    const database = db.getDatabase();
-    const row = await fetchPostForTagAccess(database, postId);
-    ensurePostExists(row);
-    ensurePostAuthor(row, user);
-
-    const uniqueIds = [...new Set(tagIds)];
-
-    if (uniqueIds.length > 0) {
-      const found = await database
-        .select({ id: tag.id })
-        .from(tag)
-        .where(inArray(tag.id, uniqueIds));
-      if (found.length !== uniqueIds.length) {
-        throw new InputValidationException("One or more tags do not exist.", [
-          "body",
-          "tagIds",
-        ]);
-      }
-    }
-
-    await database.transaction(async (tx) => {
-      const current = await tx
-        .select({ tagId: postTag.tagId })
-        .from(postTag)
-        .where(eq(postTag.postId, postId));
-
-      const currentSet = new Set(current.map((r) => r.tagId));
-      const desiredSet = new Set(uniqueIds);
-
-      const toRemove = [...currentSet].filter((id) => !desiredSet.has(id));
-      const toAdd = [...desiredSet].filter((id) => !currentSet.has(id));
-
-      if (toRemove.length > 0) {
-        await tx
-          .delete(postTag)
-          .where(
-            and(eq(postTag.postId, postId), inArray(postTag.tagId, toRemove))
-          );
-      }
-
-      if (toAdd.length > 0) {
-        await tx.insert(postTag).values(
-          toAdd.map((tid) => ({
-            postId,
-            tagId: tid,
-          }))
-        );
-      }
-    });
-
-    const tags = await selectTagsForPost(postId);
-    return { success: true as const, tags };
+    return await syncPostTagsUseCase(postId, tagIds, user, getPostTagDeps());
   }
 }
