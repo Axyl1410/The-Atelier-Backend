@@ -48,7 +48,7 @@ app.get("/api/session", (c) => {
   const user = c.get("user");
 
   if (!user) {
-    return c.body(null, 401);
+    return c.json({ message: "Unauthorized" }, 401);
   }
 
   return c.json({
@@ -59,23 +59,13 @@ app.get("/api/session", (c) => {
 
 app.onError((err, c) => {
   if (err instanceof ApiException) {
-    // If it's a Chanfana ApiException, let Chanfana handle the response
-    return c.json(
-      { success: false, errors: err.buildResponse() },
-      err.status as ContentfulStatusCode
-    );
+    const message = err.message || "Unexpected error";
+    return c.json({ message }, err.status as ContentfulStatusCode);
   }
 
   console.error("Global error handler caught:", err); // Log the error if it's not known
 
-  // For other errors, return a generic 500 response
-  return c.json(
-    {
-      success: false,
-      errors: [{ code: 7000, message: "Internal Server Error" }],
-    },
-    500
-  );
+  return c.json({ message: "Internal Server Error" }, 500);
 });
 
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));

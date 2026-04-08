@@ -12,10 +12,7 @@ export async function resendVerificationRateLimit(c: Context, next: Next) {
 
   if (!success) {
     return c.json(
-      {
-        message: "Too many requests",
-        code: "RATE_LIMITED",
-      },
+      { message: "Too many requests" },
       429
     );
   }
