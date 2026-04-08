@@ -9,6 +9,11 @@ import {
 } from "./endpoints/comments";
 import { DummyEndpoint } from "./endpoints/dummy-endpoint";
 import {
+  DeletePostLikeEndpoint,
+  GetMyPostLikeStatusEndpoint,
+  PostLikeEndpoint,
+} from "./endpoints/likes";
+import {
   DeletePostTagEndpoint,
   GetPostTagsEndpoint,
   PostPostTagEndpoint,
@@ -22,6 +27,7 @@ import {
   ListPostsEndpoint,
   UpdatePostEndpoint,
 } from "./endpoints/posts";
+import { GetProfileEndpoint } from "./endpoints/profile";
 import { ResendVerificationEmailEndpoint } from "./endpoints/resend-verification-email";
 import {
   CreateTagEndpoint,
@@ -120,6 +126,10 @@ openapi.get("/api/posts/:postId/comments", ListPostCommentsEndpoint);
 openapi.post("/api/posts/:postId/comments", CreatePostCommentEndpoint);
 openapi.patch("/api/comments/:commentId", UpdateCommentEndpoint);
 openapi.delete("/api/comments/:commentId", DeleteCommentEndpoint);
+openapi.post("/api/posts/:postId/likes", PostLikeEndpoint);
+openapi.delete("/api/posts/:postId/likes", DeletePostLikeEndpoint);
+openapi.get("/api/posts/:postId/likes/me", GetMyPostLikeStatusEndpoint);
+openapi.get("/api/profile", GetProfileEndpoint);
 
 // Export the Hono app
 export default app;

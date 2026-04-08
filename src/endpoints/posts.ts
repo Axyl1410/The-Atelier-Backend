@@ -38,6 +38,16 @@ function throwConflict(message: string): never {
   throw err;
 }
 
+function isUniqueConstraintForSlug(error: unknown): boolean {
+  if (!(error instanceof Error)) {
+    return false;
+  }
+  return (
+    error.message.includes("UNIQUE constraint failed") &&
+    error.message.includes("post.slug")
+  );
+}
+
 const postListItemSchema = z.object({
   id: z.string(),
   slug: z.string(),
@@ -273,6 +283,10 @@ export class CreatePostEndpoint extends OpenAPIRoute {
         description: "Post not found",
         ...apiErrorResponse,
       },
+      "409": {
+        description: "Slug already taken",
+        ...apiErrorResponse,
+      },
     },
   };
 
@@ -300,16 +314,23 @@ export class CreatePostEndpoint extends OpenAPIRoute {
     }
 
     const id = crypto.randomUUID();
-    await database.insert(post).values({
-      id,
-      slug: finalSlug,
-      title: b.title,
-      content: b.content,
-      summary: b.summary ?? null,
-      coverImage: b.coverImage ?? null,
-      isPublished: b.isPublished ?? false,
-      authorId: user.id,
-    });
+    try {
+      await database.insert(post).values({
+        id,
+        slug: finalSlug,
+        title: b.title,
+        content: b.content,
+        summary: b.summary ?? null,
+        coverImage: b.coverImage ?? null,
+        isPublished: b.isPublished ?? false,
+        authorId: user.id,
+      });
+    } catch (error) {
+      if (isUniqueConstraintForSlug(error)) {
+        throwConflict("Post slug already taken");
+      }
+      throw error;
+    }
 
     const created = await fetchPostById(database, id);
     if (!created) {
@@ -430,7 +451,14 @@ export class UpdatePostEndpoint extends OpenAPIRoute {
     }
 
     if (Object.keys(patch).length > 0) {
-      await database.update(post).set(patch).where(eq(post.id, postId));
+      try {
+        await database.update(post).set(patch).where(eq(post.id, postId));
+      } catch (error) {
+        if (isUniqueConstraintForSlug(error)) {
+          throwConflict("Post slug already taken");
+        }
+        throw error;
+      }
     }
 
     const updated = await fetchPostById(database, postId);

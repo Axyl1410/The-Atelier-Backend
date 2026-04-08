@@ -32,7 +32,10 @@ function isReadRoute(method: string, path: string): boolean {
 
 function isWriteRoute(method: string, path: string): boolean {
   const isWriteMethod =
-    method === "POST" || method === "PATCH" || method === "DELETE";
+    method === "POST" ||
+    method === "PATCH" ||
+    method === "DELETE" ||
+    method === "PUT";
   if (!isWriteMethod) {
     return false;
   }
@@ -102,4 +105,3 @@ export async function apiRateLimitMiddleware(c: AppContext, next: Next) {
   c.res.headers.set("X-RateLimit-Remaining", String(remaining));
   c.res.headers.set("X-RateLimit-Reset", String(reset));
 }
-
