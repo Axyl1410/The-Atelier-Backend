@@ -1,15 +1,17 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { cloudflareTest } from "@cloudflare/vitest-pool-workers";
-import { defineConfig } from "vitest/config";
+import { defineProject } from "vitest/config";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-export default defineConfig({
+export default defineProject({
   test: {
+    name: "integration",
     testTimeout: 30_000,
     fileParallelism: false,
+    include: ["integration/**/*.test.ts"],
   },
   resolve: {
     alias: {
