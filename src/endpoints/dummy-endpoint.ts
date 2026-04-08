@@ -19,14 +19,16 @@ export class DummyEndpoint extends OpenAPIRoute {
     responses: {
       "200": {
         description: "Returns the log details",
-        ...contentJson({
-          success: Boolean,
-          result: z.object({
-            msg: z.string(),
-            slug: z.string(),
-            name: z.string(),
-          }),
-        }),
+        ...contentJson(
+          z.object({
+            success: z.boolean(),
+            result: z.object({
+              msg: z.string(),
+              slug: z.string(),
+              name: z.string(),
+            }),
+          })
+        ),
       },
     },
   };

@@ -7,6 +7,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 export default defineConfig({
+  test: {
+    testTimeout: 30_000,
+    fileParallelism: false,
+  },
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "../src"),

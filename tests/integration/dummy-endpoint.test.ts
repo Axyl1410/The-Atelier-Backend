@@ -13,9 +13,9 @@ describe("Dummy API Integration Tests", () => {
       const response = await exports.default.fetch(
         `http://local.test/dummy/${slug}`,
         {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(requestBody),
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(requestBody),
         }
       );
       const body = await response.json<{ success: boolean; result: any }>();
@@ -25,6 +25,21 @@ describe("Dummy API Integration Tests", () => {
       expect(body.result.slug).toBe(slug);
       expect(body.result.name).toBe(requestBody.name);
       expect(body.result).toHaveProperty("msg");
+    });
+
+    it("should return 400 when body is invalid", async () => {
+      const response = await exports.default.fetch(
+        "http://local.test/dummy/test-slug",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({}),
+        }
+      );
+
+      expect(response.status).toBe(400);
+      const body = await response.json<Record<string, unknown>>();
+      expect(body).toHaveProperty("errors");
     });
   });
 });
